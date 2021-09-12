@@ -1,0 +1,28 @@
+{
+  "name": "allex_mssqlexecutorlib",
+  "version": "0.9.0",
+  "description": "AllexJS lib for executing queries against the MS SQL Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/allex-libs/mssqlexecutor.git"
+  },
+  "dependencies": {
+    "mssql": "7.x"
+  },
+  "keywords": [
+    "ecosystem:AllexJS",
+    "mssql",
+    "executor",
+    "lib"
+  ],
+  "author": "Andrija Petrovic <andrija.hers@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/allex-libs/mssqlexecutor/issues"
+  },
+  "homepage": "https://github.com/allex-libs/mssqlexecutor#readme"
+}
