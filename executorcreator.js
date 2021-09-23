@@ -10,7 +10,10 @@ function createExecutor (execlib, mylib) {
   }
   MSSQLExecutor.prototype.destroy = function () {
     if (this.poolPromise) {
-      this.poolPromise.close();
+      this.poolPromise.then(
+        function (pool) {pool.close();},
+        null
+      );
     }
     this.poolPromise = null;
     this.options = null;

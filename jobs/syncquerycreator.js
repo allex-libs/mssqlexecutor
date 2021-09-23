@@ -1,4 +1,4 @@
-function createSyncQueryJob (execlib, mylib) {
+function createSyncQueryJob (lib, mylib) {
   'use strict';
 
   var SyncJob = mylib.Sync;

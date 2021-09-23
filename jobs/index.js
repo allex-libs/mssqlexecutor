@@ -7,6 +7,7 @@ function createMSSQLStorageJobs (execlib, outerlib) {
     require ('./asynccreator')(lib, mylib);
 
     require ('./syncquerycreator')(lib, mylib);
+    require ('./syncsinglequerycreator')(lib, mylib);
     require ('./asyncquerycreator')(lib, mylib);
 
     require ('./indexlistercreator')(lib, mylib, outerlib.sqlsentencing);

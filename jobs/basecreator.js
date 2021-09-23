@@ -4,16 +4,16 @@ function createBaseJob (lib, mylib) {
     qlib = lib.qlib,
     JobOnDestroyableBase = qlib.JobOnDestroyableBase;
 
-  function BaseMSSQLStorageJob (executor, defer) {
+  function BaseMSSQLJob (executor, defer) {
     JobOnDestroyableBase.call(this, executor, defer);
     this.pool = null;
   }
-  lib.inherit(BaseMSSQLStorageJob, JobOnDestroyableBase);
-  BaseMSSQLStorageJob.prototype.destroy = function () {
+  lib.inherit(BaseMSSQLJob, JobOnDestroyableBase);
+  BaseMSSQLJob.prototype.destroy = function () {
     this.pool = null;
     JobOnDestroyableBase.prototype.destroy.call(this);
   };
-  BaseMSSQLStorageJob.prototype._destroyableOk = function () {
+  BaseMSSQLJob.prototype._destroyableOk = function () {
     if (!this.destroyable) {
       throw new lib.Error('NO_MSSQL_EXECUTOR', 'No MSSQLExecutor');
     }
@@ -25,7 +25,7 @@ function createBaseJob (lib, mylib) {
     }
     return true;
   };
-  BaseMSSQLStorageJob.prototype.go = function () {
+  BaseMSSQLJob.prototype.go = function () {
     var ok = this.okToGo();
     if (!ok.ok) {
       return ok.val;
@@ -36,7 +36,7 @@ function createBaseJob (lib, mylib) {
     );
     return ok.val;
   };
-  BaseMSSQLStorageJob.prototype.onPool = function (pool) {
+  BaseMSSQLJob.prototype.onPool = function (pool) {
     if (!this.okToProceed()) {
       return;
     }
@@ -47,6 +47,6 @@ function createBaseJob (lib, mylib) {
     this.goForSure();
   };
 
-  mylib.Base = BaseMSSQLStorageJob;
+  mylib.Base = BaseMSSQLJob;
 }
 module.exports = createBaseJob;

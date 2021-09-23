@@ -8,8 +8,8 @@ describe('Test Query', function () {
       connection: {
         server: 'localhost',
         user: 'sa',
-        password: 'PUT_THE_MSSQL_PASSWORD_HERE',
-        database: 'PUT_THE_MSSQL_DB_NAME_HERE',
+        password: 'Kremplazma.123',
+        database: 'IndataDB_Main',
         options: {
           trustServerCertificate: true
         }
@@ -49,5 +49,8 @@ describe('Test Query', function () {
   });
   it ('UsersIndexes.all.PK_users', function () {
     console.log(require('util').inspect(UsersIndexes.all.get('PK_users'), {depth: 11, colors: true}));
+  });
+  it ('Destroy Executor', function () {
+    Executor.destroy();
   });
 });

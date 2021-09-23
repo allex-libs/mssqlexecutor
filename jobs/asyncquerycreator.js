@@ -1,4 +1,4 @@
-function createAsyncQueryJob (execlib, mylib) {
+function createAsyncQueryJob (lib, mylib) {
   'use strict';
 
   var AsyncJob = mylib.Async;

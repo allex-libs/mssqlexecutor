@@ -2,7 +2,8 @@ function createConnectionHandling(execlib, mssql, MSSQLExecutor) {
   'use strict';
 
   var lib = execlib.lib,
-  q = lib.q;
+    q = lib.q,
+    ConnectionPool = mssql.ConnectionPool;
 
   MSSQLExecutor.prototype.connect = function () {
     if (this.poolPromise) {
@@ -20,7 +21,7 @@ function createConnectionHandling(execlib, mssql, MSSQLExecutor) {
       defer = null;
       return;
     }
-    mssql.connect(this.options.connection).then(
+    (new ConnectionPool(this.options.connection)).connect().then(
       this.onConnected.bind(this, defer),
       this.onConnectionFailed.bind(this, defer)
     );
