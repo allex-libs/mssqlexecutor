@@ -12,6 +12,9 @@ function createSteppedJob (lib, mylib) {
   }
   lib.inherit(SteppedJob, JobBase);
   SteppedJob.prototype.destroy = function () {
+    if (this.config && lib.isFunction(this.config.onDesctruction)) {
+      this.config.onDesctruction.call(this);
+    }
     this.step = null;
     this.config = null;
     JobBase.prototype.destroy.call(this);
@@ -25,7 +28,7 @@ function createSteppedJob (lib, mylib) {
     return ok.val;
   };
   SteppedJob.prototype.peekToProceed = function () {
-    var ret = JobBase.prototype.peekToProceed.call(this);
+    var ret = JobBase.prototype.peekToProceed.call(this), check;
     if (!(ret && ret.ok)) {
       return ret;
     }
@@ -42,7 +45,13 @@ function createSteppedJob (lib, mylib) {
       };
     }
     if (lib.isFunction(this.config.shouldContinue)) {
-      return this.config.shouldContinue.call(this);
+      check = this.config.shouldContinue.call(this);
+      if (check) {
+        return {
+          ok: false,
+          val: check
+        };
+      }
     }
     return ret;
   };
@@ -78,5 +87,23 @@ function createSteppedJob (lib, mylib) {
   };
 
   mylib.Stepped = SteppedJob;
+
+  function newSteppedJobOnInstance (instance, methodnamesteps, defer) {
+    var ret = new SteppedJob({
+      shouldContinue: lib.isFunction(instance.shouldContinue) ? instance.shouldContinue.bind(instance) : null,
+      onDesctruction: lib.isFunction(instance.destroy) ? instance.destroy.bind(instance) : null,
+      steps: methodnamesteps.map(function(stepmethodname) {
+        if (!lib.isFunction(instance[stepmethodname])) {
+          throw new lib.Error('NOT_A_METHOD', stepmethodname+' is not a method of '+instance.constructor.name);
+        }
+        return instance[stepmethodname].bind(instance);
+      })
+    }, defer);
+    instance = null;
+    methodnamesteps = null;
+    return ret;
+  }
+
+  mylib.newSteppedJobOnInstance = newSteppedJobOnInstance;
 }
 module.exports = createSteppedJob;
