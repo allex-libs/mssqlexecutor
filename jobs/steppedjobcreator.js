@@ -96,8 +96,8 @@ function createSteppedJob (lib, mylib) {
 
   mylib.Stepped = SteppedJob;
 
-  function newSteppedJobOnInstance (instance, methodnamesteps, defer) {
-    var ret = new SteppedJob({
+  function SteppedJobOnInstance (instance, methodnamesteps, defer) {
+    SteppedJob.call(this, {
       notify: instance.notify,
       shouldContinue: lib.isFunction(instance.shouldContinue) ? instance.shouldContinue.bind(instance) : null,
       onDesctruction: lib.isFunction(instance.destroy) ? instance.destroy.bind(instance) : null,
@@ -108,14 +108,23 @@ function createSteppedJob (lib, mylib) {
         return instance[stepmethodname].bind(instance);
       })
     }, defer);
-    instance = null;
-    methodnamesteps = null;
-    return ret;
   }
-  function newSteppedJobOnSteppedInstance (instance, defer) {
-    return newSteppedJobOnInstance(instance, instance.steps, defer);
+  lib.inherit(SteppedJobOnInstance, SteppedJob);
+  mylib.SteppedOnInstance = SteppedJobOnInstance;
+
+  function SteppedJobOnSteppedInstance (instance, defer) {
+    SteppedJobOnInstance.call(this, instance, instance.steps, defer);
+  }
+  lib.inherit(SteppedJobOnSteppedInstance, SteppedJobOnInstance);
+  mylib.SteppedOnSteppedInstance = SteppedJobOnSteppedInstance;
+
+  function newSteppedJobOnInstance (instance, methodnamesteps, defer) {
+    return new SteppedJobOnInstance(instance, methodnamesteps, defer);
   }
 
+  function newSteppedJobOnSteppedInstance (instance, defer) {
+    return new SteppedJobOnSteppedInstance(instance, defer);
+  }
   mylib.newSteppedJobOnInstance = newSteppedJobOnInstance;
   mylib.newSteppedJobOnSteppedInstance = newSteppedJobOnSteppedInstance;
 }
