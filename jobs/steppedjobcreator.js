@@ -8,7 +8,11 @@ function createSteppedJob (lib, mylib) {
   function SteppedJob (config, defer) {
     JobBase.call(this, defer);
     this.config = config;
+    this.notifyListener = null;
     this.step = -1; //will be bumped to zero in first runStep
+    if (config.notify && lib.isFunction(config.notify.attach)){
+      this.notifyListener = config.notify.attach(this.notify.bind(this));
+    }
   }
   lib.inherit(SteppedJob, JobBase);
   SteppedJob.prototype.destroy = function () {
@@ -16,7 +20,11 @@ function createSteppedJob (lib, mylib) {
       this.config.onDesctruction.call(this);
     }
     this.step = null;
-    this.config = null;
+    if (this.notifyListener) {
+      this.notifyListener.destroy();
+    }
+    this.notifyListener = null;
+    this.config = null;    
     JobBase.prototype.destroy.call(this);
   };
   SteppedJob.prototype.go = function () {
@@ -90,6 +98,7 @@ function createSteppedJob (lib, mylib) {
 
   function newSteppedJobOnInstance (instance, methodnamesteps, defer) {
     var ret = new SteppedJob({
+      notify: instance.notify,
       shouldContinue: lib.isFunction(instance.shouldContinue) ? instance.shouldContinue.bind(instance) : null,
       onDesctruction: lib.isFunction(instance.destroy) ? instance.destroy.bind(instance) : null,
       steps: methodnamesteps.map(function(stepmethodname) {
