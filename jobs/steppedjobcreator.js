@@ -103,7 +103,11 @@ function createSteppedJob (lib, mylib) {
     methodnamesteps = null;
     return ret;
   }
+  function newSteppedJobOnSteppedInstance (instance, defer) {
+    return newSteppedJobOnInstance(instance, instance.steps, defer);
+  }
 
   mylib.newSteppedJobOnInstance = newSteppedJobOnInstance;
+  mylib.newSteppedJobOnSteppedInstance = newSteppedJobOnSteppedInstance;
 }
 module.exports = createSteppedJob;
