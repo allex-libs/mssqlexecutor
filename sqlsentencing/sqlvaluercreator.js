@@ -12,8 +12,8 @@ function createSqlValuer (execlib, mylib) {
   }
   function quoted (val) {
     if (!lib.isVal(val)) return _NULL;
-    if (val[0]=="'") return val;
-    return "'"+val+"'";
+    //if (val[0]=="'") return val;
+    return "'"+val.replace(/'/g, "''")+"'";
   }
   function sqlValueOf (datahash, field) {
     var val = datahash[field.name];
@@ -33,14 +33,24 @@ function createSqlValuer (execlib, mylib) {
   function toSqlValue (value) {
     if (lib.isString(value)) return quoted(value);
     if (lib.isNumber(value)) return value;
-    if (lib.isBool(value)) return value ? 1 : 0;
-    return 'NULL';
+    if (lib.isBoolean(value)) return value ? 1 : 0;
+    return _NULL;
+  }
+  function equal (a, b) {
+    var b1 = toSqlValue(b);
+    return a+(b1==_NULL ? ' IS ' : '<>')+b1;
+  }
+  function unEqual (a, b) {
+    var b1 = toSqlValue(b);
+    return a+(b1==_NULL ? ' IS NOT ' : '<>')+b1;
   }
 
   mylib.entityNameOf = entityNameOf;
   mylib.quoted = quoted;
   mylib.sqlValueOf = sqlValueOf;
   mylib.toSqlValue = toSqlValue;
+  mylib.equal = equal;
+  mylib.unEqual = unEqual;
 }
 
 module.exports = createSqlValuer;
