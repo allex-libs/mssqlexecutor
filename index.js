@@ -3,6 +3,7 @@ function createMSSQLExecutor (execlib) {
   var mylib = {};
   mylib.sqlsentencing = require('./sqlsentencing')(execlib);
   require('./jobs')(execlib, mylib);
+  require('./jobcores')(execlib, mylib);
 
   require('./executorcreator')(execlib, mylib);
 

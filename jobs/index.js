@@ -14,9 +14,8 @@ function createMSSQLStorageJobs (execlib, outerlib) {
     require ('./indexcreatorcreator')(lib, mylib, outerlib.sqlsentencing);
     require ('./indexdroppercreator')(lib, mylib, outerlib.sqlsentencing);
 
-    require ('./steppedjobcreator')(lib, mylib);
-
     /*
+    require ('./steppedjobcreator')(lib, mylib);
     require ('./indexlistercreator')(lib, mylib, sqlsentencinglib);
     require ('./indexcreatorcreator')(lib, mylib, sqlsentencinglib);
     require ('./indexdroppercreator')(lib, mylib, sqlsentencinglib);

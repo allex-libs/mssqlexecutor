@@ -45,12 +45,21 @@ function createSqlValuer (execlib, mylib) {
     return a+(b1==_NULL ? ' IS NOT ' : '<>')+b1;
   }
 
+  function toValuesOfScalarArray (arrayofscalars, scalarsqlname) {
+    var scalarsqlname = scalarsqlname||'a';
+    return '(SELECT '+scalarsqlname+' FROM (VALUES'+arrayofscalars.map(function(s) {return '('+s+')'}).join(',')+') AS t('+scalarsqlname+'))';
+  }
+  function toValuesOfHashArray (arrayofhashes) {
+
+  }
+
   mylib.entityNameOf = entityNameOf;
   mylib.quoted = quoted;
   mylib.sqlValueOf = sqlValueOf;
   mylib.toSqlValue = toSqlValue;
   mylib.equal = equal;
   mylib.unEqual = unEqual;
+  mylib.toValuesOfScalarArray = toValuesOfScalarArray;
 }
 
 module.exports = createSqlValuer;
