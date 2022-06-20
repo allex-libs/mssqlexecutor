@@ -6,7 +6,7 @@ describe('Test Query', function () {
     return setGlobal('Executor', new Lib.Executor({
       maxConnectionAttempts: 10,
       connection: {
-        server: '192.168.129',
+        server: '192.168.1.129',
         user: 'sa',
         password: 'SQL1.Server2',
         database: 'IndataDB_Main',
