@@ -106,5 +106,12 @@ function createAsyncJob (lib, mylib) {
   };
 
   mylib.Async = AsyncJob;
+
+  function errorer (result, error) {
+    if (error) {
+      result += (error.message ? error.message : error.toString());
+    }
+    return result;
+  }
 }
 module.exports = createAsyncJob;

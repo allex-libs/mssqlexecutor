@@ -3,8 +3,8 @@ function createSyncJob (lib, mylib) {
   var q = lib.q,
     qlib = lib.qlib;
 
-  function SyncJob (pool, defer) {
-    mylib.Base.call(this, pool, defer);
+  function SyncJob (executor, defer) {
+    mylib.Base.call(this, executor, defer);
   }
   lib.inherit(SyncJob, mylib.Base);
   SyncJob.prototype.goForSure = function () {

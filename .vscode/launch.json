@@ -7,7 +7,17 @@
     {
       "type": "pwa-node",
       "request": "launch",
-      "name": "Lookup Listing",
+      "name": "Test Query",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      "args": ["test/test.query.js"]
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Test Stepped",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -17,12 +27,12 @@
     {
       "type": "pwa-node",
       "request": "launch",
-      "name": "Fetch Composites",
+      "name": "Test Txn-Wrapped",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "/home/luka/lib/node_modules/allextesting/commandline/allex-mocha",
-      "args": ["test/test.fetchcomposites.js"]
+      "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      "args": ["test/test.txnwrapped.js"]
     }
   ]
 }

@@ -4,6 +4,7 @@ function createMSSQLStorageJobCores (execlib, outerlib) {
     mylib = {};
 
   require ('./onebyoneprocessor')(lib, mylib);
+  require ('./txnwrapped')(lib, mylib);
 
   outerlib.jobcores = mylib;
 }

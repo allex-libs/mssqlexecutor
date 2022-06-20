@@ -6,9 +6,9 @@ describe('Test Query', function () {
     return setGlobal('Executor', new Lib.Executor({
       maxConnectionAttempts: 10,
       connection: {
-        server: 'localhost',
+        server: '192.168.129',
         user: 'sa',
-        password: 'Kremplazma.123',
+        password: 'SQL1.Server2',
         database: 'IndataDB_Main',
         options: {
           trustServerCertificate: true
