@@ -11,7 +11,12 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      "windows": {
+        "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      },
+      "linux": {
+        "program": "${env:HOME}/lib/node_modules/allextesting/commandline/allex-mocha",
+      },
       "args": ["test/test.query.js"]
     },
     {
@@ -21,7 +26,12 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      "windows": {
+        "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      },
+      "linux": {
+        "program": "${env:HOME}/lib/node_modules/allextesting/commandline/allex-mocha",
+      },
       "args": ["test/test.stepped.js"]
     },
     {
@@ -31,7 +41,12 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      "windows": {
+        "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      },
+      "linux": {
+        "program": "${env:HOME}/lib/node_modules/allextesting/commandline/allex-mocha",
+      },
       "args": ["test/test.txnwrapped.js"]
     }
   ]
