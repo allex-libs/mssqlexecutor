@@ -22,6 +22,21 @@
     {
       "type": "pwa-node",
       "request": "launch",
+      "name": "Test Sentencing",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "windows": {
+        "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      },
+      "linux": {
+        "program": "${env:HOME}/lib/node_modules/allextesting/commandline/allex-mocha",
+      },
+      "args": ["test/test.sentencing.js"]
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
       "name": "Test Stepped",
       "skipFiles": [
         "<node_internals>/**"
