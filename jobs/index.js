@@ -1,4 +1,4 @@
-function createMSSQLStorageJobs (execlib, outerlib) {
+function createMSSQLJobs (execlib, outerlib) {
   'use strict';
   var lib = execlib.lib, 
     mylib = {};
@@ -22,4 +22,4 @@ function createMSSQLStorageJobs (execlib, outerlib) {
     */
   outerlib.jobs = mylib;
 }
-module.exports = createMSSQLStorageJobs;
+module.exports = createMSSQLJobs;
