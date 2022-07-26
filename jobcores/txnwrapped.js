@@ -6,19 +6,28 @@ function createTxnWrappedJobCore (lib, mylib) {
 
   function SafeJobRunnerJobCore (job) {
     this.job = job;
+    this.notify = new lib.HookCollection();
   }
   SafeJobRunnerJobCore.prototype.destroy = function () {
     this.job = null;
+    if (this.notify) {
+      this.notify.destroy();
+    }
+    this.notify = null;
   };
   SafeJobRunnerJobCore.prototype.shouldContinue = function () {
     if (!this.job) {
       return new lib.Error('NO_JOB_TO_SAFE_RUN');
     }
+    if (!this.notify) {
+      return new lib.Error('ALREADY_DESTROYED');
+    }
   };
   SafeJobRunnerJobCore.prototype.run = function () {
     return this.job.go().then(
       this.onRunSuccess.bind(this),
-      this.onRunFail.bind(this)
+      this.onRunFail.bind(this),
+      this.notify.fire.bind(this.notify)
     );
   };
   SafeJobRunnerJobCore.prototype.onRunSuccess = function (result) {
@@ -57,15 +66,20 @@ function createTxnWrappedJobCore (lib, mylib) {
     this.jobToWrap = null;
     this.pool = null;
     this.txn = null;
+    this.txnUnderWay = false;
     this.txnExecutor = null;
     this.result = null;
   }
   TxnWrappedJobCore.prototype.destroy = function () {
+    if (this.txn && this.txnUnderWay) {
+      this.txn.rollback();
+    }
     this.result = null;
     if (this.txnExecutor) {
       this.txnExecutor.destroy();
     }
     this.txnExecutor = null;
+    this.txnUnderWay = null;
     this.txn = null;
     this.pool = null;
     this.jobToWrap = null;
@@ -114,7 +128,7 @@ function createTxnWrappedJobCore (lib, mylib) {
     return this.txn.begin();
   };
   TxnWrappedJobCore.prototype.onTransactionBegun = function () {
-
+    this.txnUnderWay = true;
   };
   TxnWrappedJobCore.prototype.createWrapped = function () {
     this.txnExecutor = new TxnedExecutor(this.txn);
@@ -136,6 +150,7 @@ function createTxnWrappedJobCore (lib, mylib) {
     return this.txn[this.result.fail ? 'rollback' : 'commit']();
   };
   TxnWrappedJobCore.prototype.finalize = function () {
+    this.txnUnderWay = false;
     this.txn = null;
     if (this.result.fail) {
       throw this.result.fail;
