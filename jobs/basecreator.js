@@ -17,7 +17,7 @@ function createBaseJob (lib, mylib) {
     if (!this.destroyable) {
       throw new lib.Error('NO_MSSQL_EXECUTOR', 'No MSSQLExecutor');
     }
-    if (!lib.isNumber(this.destroyable.connectionAttempts)) {
+    if (!this.destroyable.resourceHandlingOptions) {
       throw new lib.Error('MSSQL_EXECUTOR_DESTROYED', 'MSSQLExecutor is already destroyed');
     }
     if (this.pool && !this.pool.connected) {

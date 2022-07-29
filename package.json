@@ -1,6 +1,6 @@
 {
   "name": "allex_mssqlexecutorlib",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "AllexJS lib for executing queries against the MS SQL Server",
   "main": "index.js",
   "scripts": {

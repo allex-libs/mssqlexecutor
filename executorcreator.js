@@ -1,23 +1,16 @@
 var mssql = require('mssql');
 
-function createExecutor (execlib, mylib) {
+function createExecutor (execlib, resourcehandlinglib, mylib) {
   'use strict';
 
+  var ResMixin = resourcehandlinglib.mixins.ResourceHandler;
+
   function MSSQLExecutor (options) {
-    this.options = options;
-    this.connectionAttempts = 0;
-    this.poolPromise = null;
+    ResMixin.call(this, options);
   }
+  ResMixin.addMethods(MSSQLExecutor);
   MSSQLExecutor.prototype.destroy = function () {
-    if (this.poolPromise) {
-      this.poolPromise.then(
-        function (pool) {pool.close();},
-        null
-      );
-    }
-    this.poolPromise = null;
-    this.options = null;
-    this.connectionAttempts = null;
+    ResMixin.prototype.destroy.call(this);
   };
 
   require('./connectionhandling')(execlib, mssql, MSSQLExecutor);

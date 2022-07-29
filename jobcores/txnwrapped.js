@@ -47,12 +47,12 @@ function createTxnWrappedJobCore (lib, mylib) {
 
   function TxnedExecutor (txn) {
     this.txn = txn;
-    this.connectionAttempts = 1;
+    this.resourceHandlingOptions = {};
     this.connected = this.txn.connected;
   }
   TxnedExecutor.prototype.destroy = function () {
     this.connected = null;
-    this.connectionAttempts = null;
+    this.resourceHandlingOptions = null;
     this.txn = null;
   };
   TxnedExecutor.prototype.connect = function () {
