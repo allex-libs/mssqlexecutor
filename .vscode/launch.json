@@ -5,7 +5,22 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "pwa-node",
+      "type": "node",
+      "request": "launch",
+      "name": "Test Exec",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "windows": {
+        "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      },
+      "linux": {
+        "program": "${env:HOME}/lib/node_modules/allextesting/commandline/allex-mocha",
+      },
+      "args": ["test/test.exec.js"]
+    },
+    {
+      "type": "node",
       "request": "launch",
       "name": "Test Query",
       "skipFiles": [
@@ -20,7 +35,7 @@
       "args": ["test/test.query.js"]
     },
     {
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "name": "Test Sentencing",
       "skipFiles": [
@@ -35,7 +50,7 @@
       "args": ["test/test.sentencing.js"]
     },
     {
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "name": "Test Stepped",
       "skipFiles": [
@@ -50,7 +65,7 @@
       "args": ["test/test.stepped.js"]
     },
     {
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "name": "Test Txn-Wrapped",
       "skipFiles": [

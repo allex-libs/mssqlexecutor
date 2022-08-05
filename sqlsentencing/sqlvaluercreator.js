@@ -30,7 +30,31 @@ function createSqlValuer (execlib, mylib) {
       default: return val;
     }
   }
+  function dateStringPart(char, datum) {
+    switch (char) {
+      case 'm':
+        return datum.getMonth()+1;
+      case 'd':
+        return datum.getDay();
+      case 'y':
+        return datum.getFullYear();
+      default:
+        throw new lib.Error('UNRECOGNIZED_DATEFORMAT_CHAR', char+' is not a valid dateformat char');
+    }
+  }
+  function dateString (datum) {
+    var i, res;
+    if (!(datum instanceof Date)) {
+      throw new lib.Error('NOT_A_DATE', 'dateString works only on Date instances');
+    }
+    res = '';
+    for (i=0; i<3; i++) {
+      res = lib.joinStringsWith(res, dateStringPart(mylib.dateformat[i], datum), '/');
+    }
+    return res;
+  }
   function toSqlValue (value) {
+    if (value instanceof Date) return quoted(dateString(value)+' '+value.getHours()+':'+value.getMinutes()+':'+value.getSeconds()+'.'+value.getMilliseconds());
     if (lib.isString(value)) return quoted(value);
     if (lib.isNumber(value)) return value;
     if (lib.isBoolean(value)) return value ? 1 : 0;
@@ -76,6 +100,7 @@ function createSqlValuer (execlib, mylib) {
     return ret;
   }
 
+  mylib.dateformat = 'mdy';
   mylib.entityNameOf = entityNameOf;
   mylib.quoted = quoted;
   mylib.sqlValueOf = sqlValueOf;

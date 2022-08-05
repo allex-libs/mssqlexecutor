@@ -16,9 +16,6 @@ describe('Test Query', function () {
       }
     }));
   });
-  it ('Connect Executor', function () {
-    return Executor.connect();
-  });
   it ('Sync Query', function () {
     return setGlobal(
       'UsersSync',
@@ -29,14 +26,53 @@ describe('Test Query', function () {
     console.log(Object.keys(UsersSync));
   });
   it ('Async Query', function () {
-    return (new Lib.jobs.AsyncQuery(Executor, 'SELECT * FROM users')).go().then(
-      null,
-      null,
-      function (thingy) {
-        console.log(Object.keys(thingy));
-      }
-      //console.log.bind(console)
-    );
+    return (new Lib.jobs.AsyncQuery(
+      Executor,
+      'SELECT * FROM users',
+      {
+        record: function (thingy) {
+          console.log('username', thingy.user_name);
+        }
+      })).go();
+  });
+  it ('Async Query Finder', function () {
+    return (new Lib.jobs.AsyncQuery(
+      Executor,
+      'SELECT * FROM users',
+      {
+        record: function (record) {
+          if (record && record.user_name=='indata') {
+            return record;
+          }
+        }
+      })).go().then(
+        function (res) {
+          if (!(res && res.user_name == 'indata')) {
+            throw new lib.Error('INDATA_NOT_FOUND', 'User indata was not found');
+          }
+          return res;
+        }
+      );
+  });
+  it ('Async Query Nagger', function () {
+    return (new Lib.jobs.AsyncQuery(
+      Executor,
+      'SELECT * FROM users',
+      {
+        record: function (record) {
+          if (record && record.user_name=='indata') {
+            throw new lib.Error('NAG_ON_INDATA', "Don't like indata");
+          }
+        }
+      })).go().then(
+        null,
+        function (reason) {
+          if (reason && reason.code == 'NAG_ON_INDATA') {
+            return 'ok';
+          }
+          throw reason;
+        }
+      );
   });
   it ('Check indexes on "users"', function () {
     return setGlobal('UsersIndexes', (new Lib.jobs.IndexLister(Executor, 'users')).go());

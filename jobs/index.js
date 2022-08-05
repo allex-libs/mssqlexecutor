@@ -8,6 +8,7 @@ function createMSSQLJobs (execlib, outerlib) {
 
     require ('./syncquerycreator')(lib, mylib);
     require ('./syncsinglequerycreator')(lib, mylib);
+    require ('./syncexeccreator')(lib, mylib);
     require ('./asyncquerycreator')(lib, mylib);
 
     require ('./indexlistercreator')(lib, mylib, outerlib.sqlsentencing);

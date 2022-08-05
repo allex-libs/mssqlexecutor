@@ -3,8 +3,8 @@ function createAsyncQueryJob (lib, mylib) {
 
   var AsyncJob = mylib.Async;
 
-  function AsyncQueryJob (executor, query, defer) {
-    AsyncJob.call(this, executor, defer);
+  function AsyncQueryJob (executor, query, cbs, defer) {
+    AsyncJob.call(this, executor, cbs, defer);
     this.query = query;
   }
   lib.inherit(AsyncQueryJob, AsyncJob);

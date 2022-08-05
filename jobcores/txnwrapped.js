@@ -147,10 +147,15 @@ function createTxnWrappedJobCore (lib, mylib) {
     this.result = runresult;
   };
   TxnWrappedJobCore.prototype.finalizeTxn = function () {
-    return this.txn[this.result.fail ? 'rollback' : 'commit']();
+    this.txnUnderWay = false;
+    if (!this.result.fail) {
+      return this.txn.commit();
+    }
+    if (!this.txn._aborted) {
+      return this.txn.rollback();
+    }
   };
   TxnWrappedJobCore.prototype.finalize = function () {
-    this.txnUnderWay = false;
     this.txn = null;
     if (this.result.fail) {
       throw this.result.fail;

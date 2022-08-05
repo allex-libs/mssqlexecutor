@@ -15,8 +15,9 @@ function createAsyncJob (lib, mylib) {
    * 2. notify({request: request, row: row}) - this notification occurs for each row in a particular redordset (yes, multiple ambiguous)
    */
 
-  function AsyncJob (executor, defer) {
+  function AsyncJob (executor, cbs, defer) {
     mylib.Base.call(this, executor, defer);
+    this.cbs = cbs;
     this.request = null;
     this.affectedRows = null;
     this.errors = [];
@@ -28,13 +29,7 @@ function createAsyncJob (lib, mylib) {
   }
   lib.inherit(AsyncJob, mylib.Base);
   AsyncJob.prototype.destroy = function () {
-    if (this.request) {
-      this.request.off('recordset', this.onColumnsBound);
-      this.request.off('row', this.onRowBound);
-      this.request.off('rowsaffected', this.onAffectedRowsBound);
-      this.request.off('error', this.onErrorBound);
-      this.request.off('done', this.onDoneBound);
-    }
+    detachFromRequest.call(this);
     this.onDoneBound = null;
     this.onErrorBound = null;
     this.onAffectedRowsBound = null;
@@ -48,11 +43,7 @@ function createAsyncJob (lib, mylib) {
   AsyncJob.prototype.goForSure = function () {
     this.request = this.pool.request();
     this.request.stream = true;
-    this.request.on('recordset', this.onColumnsBound);
-    this.request.on('row', this.onRowBound);
-    this.request.on('rowsaffected', this.onAffectedRowsBound);
-    this.request.on('error', this.onErrorBound);
-    this.request.on('done', this.onDoneBound);
+    attachToRequest.call(this);
     try {
       this.useTheRequest();
     }
@@ -65,13 +56,27 @@ function createAsyncJob (lib, mylib) {
     if (!this.okToProceed()) {
       return;
     }
-    this.notify({request: this.request, columns: columns});
+    try {
+      this.cbs.columns(columns);
+    }
+    catch (e) {
+      rejectAndCancel.call(this, e);
+    }
   };
   AsyncJob.prototype.onRow = function (row) {
+    var recret;
     if (!this.okToProceed()) {
       return;
     }
-    this.notify({request: this.request, row: row});
+    try {
+      recret = this.cbs.record(row);
+      if (lib.defined(recret)) {
+        resolveAndCancel.call(this, recret);
+      }
+    }
+    catch (e) {
+      rejectAndCancel.call(this, e);
+    }
   };
   AsyncJob.prototype.onAffectedRows = function (affectedrows) {
     if (!this.okToProceed()) {
@@ -106,6 +111,51 @@ function createAsyncJob (lib, mylib) {
   };
 
   mylib.Async = AsyncJob;
+
+  //static
+  function attachToRequest () {
+    if (!this.request) return;
+    if (this.cbs && lib.isFunction(this.cbs.columns)) {
+      this.request.on('recordset', this.onColumnsBound);
+    }
+    if (this.cbs && lib.isFunction(this.cbs.record)) {
+      this.request.on('row', this.onRowBound);
+    }
+    this.request.on('rowsaffected', this.onAffectedRowsBound);
+    this.request.on('error', this.onErrorBound);
+    this.request.on('done', this.onDoneBound);
+  }
+  //static
+  function detachFromRequest () {
+    if (!this.request) return;
+    if (this.cbs && lib.isFunction(this.cbs.columns)) {
+      this.request.off('recordset', this.onColumnsBound);
+    }
+    if (this.cbs && lib.isFunction(this.cbs.record)) {
+      this.request.off('row', this.onRowBound);
+    }
+    this.request.off('rowsaffected', this.onAffectedRowsBound);
+    this.request.off('error', this.onErrorBound);
+    this.request.off('done', this.onDoneBound);
+  }
+  //static
+  function resolveAndCancel (result) {
+    var req = this.request;
+    this.resolve(result);
+    if (req) {
+      req.on('error', lib.dummyFunc);
+      req.cancel();
+    }
+  }
+  //static
+  function rejectAndCancel (reason) {
+    var req = this.request;
+    this.reject(reason);
+    if (req) {
+      req.on('error', lib.dummyFunc);
+      req.cancel();
+    }
+  }
 
   function errorer (result, error) {
     if (error) {
