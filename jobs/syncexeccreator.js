@@ -1,8 +1,9 @@
 var mssql = require('mssql');
 
-function createSyncExecJob (lib, mylib) {
+function createSyncExecJob (execlib, mylib) {
   'use strict';
 
+  var lib = execlib.lib;
   var SyncJob = mylib.Sync;
 
   function SyncExecJob (executor, name, inputs, outputs, defer) {

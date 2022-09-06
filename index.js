@@ -1,18 +1,20 @@
-function createMSSQLExecutor (execlib, resourcehandlinglib) {
+function createMSSQLExecutor (execlib, sqlexecutorbaselib) {
   'use strict';
   var mylib = {};
-  mylib.sqlsentencing = require('./sqlsentencing')(execlib);
+  require('./helpers')(execlib, mylib);
+  mylib.sqlsentencing = sqlexecutorbaselib.createSqlSentencing(require('./sqlsentencingspecializations')(execlib));
+  mylib.jobs = sqlexecutorbaselib.createJobs(mylib.sqlsentencing, require('./jobspecializations')(execlib));
+  mylib.jobcores = sqlexecutorbaselib.createJobCores(require('./jobcorespecializations')(execlib, mylib.helpers));
   require('./jobs')(execlib, mylib);
   require('./helperjobs')(execlib, mylib);
-  require('./jobcores')(execlib, mylib);
 
-  require('./executorcreator')(execlib, resourcehandlinglib, mylib);
+  require('./executorcreator')(execlib, sqlexecutorbaselib.Executor, mylib);
 
   return mylib;
 }
 function createLib (execlib) {
   'use strict';
-  var ret = execlib.loadDependencies('client', ['allex:resourcehandling:lib'], createMSSQLExecutor.bind(null, execlib));
+  var ret = execlib.loadDependencies('client', ['allex:sqlexecutorbase:lib'], createMSSQLExecutor.bind(null, execlib));
   execlib = null;
   return ret;
 }

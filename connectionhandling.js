@@ -1,4 +1,4 @@
-function createConnectionHandling(execlib, mssql, MSSQLExecutor) {
+function createConnectionHandling(execlib, mssql, mylib, MSSQLExecutor) {
   'use strict';
 
   var lib = execlib.lib,
@@ -17,10 +17,7 @@ function createConnectionHandling(execlib, mssql, MSSQLExecutor) {
     return ret;
   };
   MSSQLExecutor.prototype.isResourceUsable = function (connection) {
-    if (!connection) {
-      return false;
-    }
-    return !connection._connecting && connection._connected && connection._healthy;
+    return mylib.helpers.isConnectionUsable(connection);
   };
 
   MSSQLExecutor.prototype.destroyResource = function (res) {

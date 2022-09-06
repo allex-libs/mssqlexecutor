@@ -3,18 +3,7 @@ describe('Test Query', function () {
     return setGlobal('Lib', require('..')(execlib));
   });
   it ('Create Executor', function () {
-    return setGlobal('Executor', new Lib.Executor({
-      maxConnectionAttempts: 10,
-      connection: {
-        server: 'mysqlserver',
-        user: 'sa',
-        password: 'SQL1.Server2',
-        database: 'IndataDB_Main',
-        options: {
-          trustServerCertificate: true
-        }
-      }
-    }));
+    return setGlobal('Executor', new Lib.Executor(require('./config/connect')));
   });
   it ('Sync Query', function () {
     return setGlobal(
@@ -81,7 +70,9 @@ describe('Test Query', function () {
     console.log(require('util').inspect(UsersIndexes, {depth: 11, colors: true}));
   });
   it ('UsersIndexes.all', function () {
-    UsersIndexes.all.dumpToConsole();
+    UsersIndexes.all.traverse(function (ix, ixname) {
+      console.log(ixname, '=>', ix.columns);
+    });
   });
   it ('UsersIndexes.all.PK_users', function () {
     console.log(require('util').inspect(UsersIndexes.all.get('PK_users'), {depth: 11, colors: true}));

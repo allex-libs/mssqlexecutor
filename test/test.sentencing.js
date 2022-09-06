@@ -3,18 +3,7 @@ describe('Test SQL Sentencing', function () {
     return setGlobal('Lib', require('..')(execlib));
   });
   it ('Create Executor', function () {
-    return setGlobal('Executor', new Lib.Executor({
-      maxConnectionAttempts: 10,
-      connection: {
-        server: 'mysqlserver',
-        user: 'sa',
-        password: 'SQL1.Server2',
-        database: 'IndataDB_Main',
-        options: {
-          trustServerCertificate: true
-        }
-      }
-    }));
+    return setGlobal('Executor', new Lib.Executor(require('./config/connect')));
   });
   it ('Connect Executor', function () {
     return Executor.connect();

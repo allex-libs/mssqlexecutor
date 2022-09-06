@@ -1,5 +1,3 @@
-const createSqlSentencer = require('../sqlsentencing/sqlsentencercreator');
-
 var procbody = [
   "CREATE PROCEDURE allextest (",
   "@first int,",
@@ -26,18 +24,7 @@ describe ('Test Exec', function () {
     return setGlobal('Lib', require('..')(execlib));
   });
   it ('Create Executor', function () {
-    return setGlobal('Executor', new Lib.Executor({
-      maxConnectionAttempts: 10,
-      connection: {
-        server: 'mysqlserver',
-        user: 'sa',
-        password: 'SQL1.Server2',
-        database: 'IndataDB_Main',
-        options: {
-          trustServerCertificate: true
-        }
-      }
-    }));
+    return setGlobal('Executor', new Lib.Executor(require('./config/connect')));
   });
   it ('Create SP', function () {
     return (new Lib.jobs.SyncQuery(Executor, procbody)).go();
