@@ -52,6 +52,29 @@ function createSqlValuer (execlib, mylib) {
   function toValuesOfHashArray (arrayofhashes) {
 
   }
+  function SetStringMaker(obj){
+    var arryObj = {
+      arry : []
+    };
+    lib.traverseShallow(obj, set_string_maker_cb.bind(this, arryObj));
+    return arryObj.arry.join(',');
+  }
+  function set_string_maker_cb(arryObj, item, key){
+    arryObj.arry.push(''+key + '=' + sqlValueOf(item));
+  }
+
+  function InsertStringMaker(obj){
+    var arryObj = {
+      arry1 : [],
+      arry2 : []
+    };
+    lib.traverseShallow(obj, insert_string_maker_cb.bind(this, arryObj));
+    return "(" + arryObj.arry1.join(',') + ") VALUES (" + arryObj.arry2.join(',') + ")";
+  }
+  function insert_string_maker_cb(arryObj, item, key){
+    arryObj.arry1.push(''+key);
+    arryObj.arry2.push('' + sqlValueOf(item));
+  }
 
   mylib.entityNameOf = entityNameOf;
   mylib.quoted = quoted;
@@ -60,6 +83,8 @@ function createSqlValuer (execlib, mylib) {
   mylib.equal = equal;
   mylib.unEqual = unEqual;
   mylib.toValuesOfScalarArray = toValuesOfScalarArray;
+  mylib.SetStringMaker = SetStringMaker;
+  mylib.InsertStringMaker = InsertStringMaker;
 }
 
 module.exports = createSqlValuer;
