@@ -30,18 +30,7 @@ describe ('Test Stepped Job', function () {
     return setGlobal('Lib', require('..')(execlib));
   });
   it ('Create Executor', function () {
-    return setGlobal('Executor', new Lib.Executor({
-      maxConnectionAttempts: 10,
-      connection: {
-        server: '192.168.1.129',
-        user: 'sa',
-        password: 'SQL1.Server2',
-        database: 'IndataDB_Main',
-        options: {
-          trustServerCertificate: true
-        }
-      }
-    }));
+    return setGlobal('Executor', new Lib.Executor(require('./config/connect')));
   });
   it ('Connect Executor', function () {
     return Executor.connect();

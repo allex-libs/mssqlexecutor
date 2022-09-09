@@ -1,26 +1,22 @@
 var mssql = require('mssql');
 
-function createExecutor (execlib, mylib) {
+function createExecutor (execlib, SQLExecutor, mylib) {
   'use strict';
 
+  var lib = execlib.lib;
+
   function MSSQLExecutor (options) {
-    this.options = options;
-    this.connectionAttempts = 0;
-    this.poolPromise = null;
+    SQLExecutor.call(this, options);
   }
+  lib.inherit(MSSQLExecutor, SQLExecutor);
   MSSQLExecutor.prototype.destroy = function () {
-    if (this.poolPromise) {
-      this.poolPromise.then(
-        function (pool) {pool.close();},
-        null
-      );
-    }
-    this.poolPromise = null;
-    this.options = null;
-    this.connectionAttempts = null;
+    SQLExecutor.prototype.destroy.call(this);
+  };
+  MSSQLExecutor.prototype.activateConnection = function (connection) {
+    return connection.request();
   };
 
-  require('./connectionhandling')(execlib, mssql, MSSQLExecutor);
+  require('./connectionhandling')(execlib, mssql, mylib, MSSQLExecutor);
 
   mylib.Executor = MSSQLExecutor;
 }

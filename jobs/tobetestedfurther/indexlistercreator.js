@@ -109,7 +109,7 @@ function createIndexLister (lib, mylib, sqlsentencinglib) {
     }
     for (i=0; i<res.recordset.length; i++) {
       r = res.recordset[i];
-      inds.addIndexColumn(r.name, r.index_column_id, r.is_primary_key)
+      inds.addIndexColumn(r.name, r.column_name, r.is_primary_key)
     }
     this.resolve(inds);
   };
