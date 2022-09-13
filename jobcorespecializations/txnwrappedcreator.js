@@ -1,7 +1,28 @@
-function createTxnWrappedSpecialization (execlib, Base) {
+function createTxnWrappedSpecialization (helpers, execlib, Base) {
   'use strict';
 
   var lib = execlib.lib;
+
+  function TxnedExecutor (txn) {
+    this.txn = txn;
+    this.resourceHandlingOptions = {};
+    this.connected = this.txn.connected;
+  }
+  TxnedExecutor.prototype.destroy = function () {
+    this.connected = null;
+    this.resourceHandlingOptions = null;
+    this.txn = null;
+  };
+  TxnedExecutor.prototype.connect = function () {
+    this.connected = this.txn.connected;
+    return this.connected ? q(this.txn) : q.reject(new lib.Error('TRANSACTION_DISCONNECTED'));
+  };
+  TxnedExecutor.prototype.isResourceUsable = function (connection) {
+    return helpers.isTransactionUsable(connection);
+  };
+  TxnedExecutor.prototype.activateConnection = function (connection) {
+    return connection.request();
+  };
 
   function TxnWrappedJobCore (executor, jobproducerfunc) {
     Base.call(this, executor, jobproducerfunc);
@@ -31,7 +52,27 @@ function createTxnWrappedSpecialization (execlib, Base) {
         return new lib.Error('INTERNAL_TRANSACTIONED_EXECUTOR_DESTROYED');
       }
     }
-  }
+  };
+  TxnWrappedJobCore.prototype.onConnected = function (pool) {
+    this.pool = pool;
+    this.txn = this.pool.transaction();
+  };
+  TxnWrappedJobCore.prototype.beginTransaction = function () {
+    return this.txn.begin();
+  };
+  TxnWrappedJobCore.prototype.createWrapped = function () {
+    this.txnExecutor = new TxnedExecutor(this.txn);
+    return this.jobProducerFunc(this.txnExecutor);
+  };
+  TxnWrappedJobCore.prototype.finalizeTxn = function () {
+    this.txnUnderWay = false;
+    if (!this.result.fail) {
+      return this.txn.commit();
+    }
+    if (!this.txn._aborted) {
+      return this.txn.rollback();
+    }
+  };
 
   return TxnWrappedJobCore;
 }

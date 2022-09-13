@@ -1,6 +1,8 @@
 function createSqlSentencingSpecializations (execlib) {
   'use strict';
 
+  var lib = execlib.lib;
+
   function indexColumnsQueryForTable (tablename) {
     return "SELECT "+
     " ind.name,"+
@@ -35,9 +37,45 @@ function createSqlSentencingSpecializations (execlib) {
     " (SELECT * FROM sys.tables WHERE name = '"+tablename+"') t ON ind.object_id = t.object_id "+
     "ORDER BY ind.index_id, ic.index_column_id";
   }
+  function indexCreationText () {
+    return 'CLUSTERED INDEX';
+  }
+  function primaryKeyCreationText () {
+    return 'PRIMARY KEY CLUSTERED';
+  }
+
+  function readFieldType(flddesc) {
+    return flddesc.mssqltype || flddesc.sqltype || flddesc.type
+  }
+
+  function createTableCreator (fieldmapper) {
+    return function createTable(tabledesc) {
+      var ret;
+      if (!tabledesc) {
+        throw new lib.Error('NO_TABLECREATION_DESCRIPTOR', 'Cannot create a CREATE TABLE sentence without a descriptor');
+      }
+      if (!lib.isString(tabledesc.name)) {
+        throw new lib.Error('NAME_NOT_A_STRING', 'Name of the table to create must be a String');
+      }
+      if (!lib.isArray(tabledesc.fields)) {
+        throw new lib.Error('FIELDS_NOT_AN_ARRAY', 'The fields of the table to create must be an array');
+      }
+      ret = [
+        "IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE name='"+tabledesc.name+"' AND xtype='U')",
+        "CREATE"+(tabledesc.temp ? ' TEMP ' : ' ')+"TABLE "+tabledesc.name+" (",
+        tabledesc.fields.map(fieldmapper).join(','),
+        ")"
+      ].join(' ');
+      return ret;
+    };
+  }
 
   return {
-    indexColumnsQueryForTable: indexColumnsQueryForTable
+    indexColumnsQueryForTable: indexColumnsQueryForTable,
+    //indexCreationText: indexCreationText,
+    primaryKeyCreationText: primaryKeyCreationText,
+    readFieldType: readFieldType,
+    createTableCreator: createTableCreator
   };
 }
 module.exports = createSqlSentencingSpecializations;
