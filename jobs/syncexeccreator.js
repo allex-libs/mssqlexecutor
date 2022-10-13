@@ -26,11 +26,24 @@ function createSyncExecJob (execlib, mylib) {
     return ret;
   };
 
+  function checkparamhash (paramhash) {
+    if (!paramhash) {
+      throw new lib.Error('NO_PARAM_TO_CHECK');
+    }
+    if (!paramhash.type) {
+      throw new lib.JSONizingError('NO_PARAM_TYPE', paramhash, 'Type needed on');
+    }
+    if (!(paramhash.type in mssql)) {
+      throw new lib.JSONizingError('NO_PARAM_TYPE', paramhash, 'Type declared is not defined in MSSql');
+    }
+  }
   function inputter (request, input) {
-    request.input(input.name, mssql[input.type], input.value);
+    checkparamhash(input);
+    request.input(input.name, 'typeparam' in input ? mssql[input.type](input.typeparam) : mssql[input.type], input.value);
   }
   function outputter (request, output) {
-    request.output(output.name, mssql[output.type], output.default);
+    checkparamhash(output);
+    request.output(output.name, 'typeparam' in output ? mssql[output.type](output.typeparam) : mssql[output.type], output.default);
   }
 
   mylib.SyncExec = SyncExecJob;
