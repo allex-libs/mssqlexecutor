@@ -15,6 +15,10 @@ function createExecutor (execlib, SQLExecutor, mylib) {
   MSSQLExecutor.prototype.activateConnection = function (connection) {
     return connection.request();
   };
+  
+  MSSQLExecutor.prototype.prepareForLog = function (thingy) {
+    return 'USE ['+this.dbname+']\n'+thingy+'\n';
+  };
 
   require('./connectionhandling')(execlib, mssql, mylib, MSSQLExecutor);
 

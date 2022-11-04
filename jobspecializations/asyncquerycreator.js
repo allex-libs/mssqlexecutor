@@ -9,6 +9,7 @@ function createAsyncQueryJobSpecialization (execlib, Base) {
   }
   lib.inherit(AsyncQueryJob, Base);
   AsyncQueryJob.prototype.useTheRequest = function () {
+    this.destroyable.maybeLog(this.query);
     return this.request.query(this.query);
   };
 
