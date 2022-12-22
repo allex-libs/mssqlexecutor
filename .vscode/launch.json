@@ -37,6 +37,21 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Test Queueing",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "windows": {
+        "program": "${env:APPDATA}/npm/node_modules/allextesting/commandline/allex-mocha",
+      },
+      "linux": {
+        "program": "${env:HOME}/lib/node_modules/allextesting/commandline/allex-mocha",
+      },
+      "args": ["test/test.queueing.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Test Sentencing",
       "skipFiles": [
         "<node_internals>/**"
