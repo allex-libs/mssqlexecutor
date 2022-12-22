@@ -10,6 +10,14 @@ function createMSSQLExecutor (execlib, sqlexecutorbaselib) {
 
   require('./executorcreator')(execlib, sqlexecutorbaselib.Executor, mylib);
 
+  var squtr = mylib.jobs.SyncQuery.prototype.useTheRequest;
+  mylib.jobs.SyncQuery.prototype.useTheRequest = function (request) {
+    if (this.options && this.options.rowsAreArrays) {
+      request.arrayRowMode = true;
+    }
+    return squtr.call(this, request);
+  };
+
   return mylib;
 }
 function createLib (execlib) {
