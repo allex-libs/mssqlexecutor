@@ -1,4 +1,4 @@
-var delaytime = 5000;
+var delaytime = 1000;
 var verbatimtests = [
   [
     'Verbatim with no fields, no proc',
