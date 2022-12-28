@@ -279,10 +279,27 @@ var firstrecordTests = [
         }
       }
     },
-    {a: 5}
+    [5]
   ],
   [
     'First record, has field, has proc',
+    {
+      type: 'firstrecord',
+      sentence: {
+        template: 'SELECT * FROM TABLE',
+        replacements: {
+          TABLE: 'AllexTestTable'
+        }
+      },
+      proc: function (a, b, c) {
+        return a - 5;
+      },
+      field: 'MyA'
+    },
+    {MyA: 0}
+  ],
+  [
+    'First record, no fields, has procs',
     {
       type: 'firstrecord',
       sentence: {
@@ -291,13 +308,28 @@ var firstrecordTests = [
           TABLE: 'AllexTestTable'
         }
       },
-      proc: function (rec) {
-        return rec.a - 5;
-      },
-      field: 'MyA'
+      proc: [function (a) {
+        return a - 5;
+      }]
     },
-    {MyA: 0
-    }
+    [0]
+  ],
+  [
+    'First record, has fields, has procs',
+    {
+      type: 'firstrecord',
+      sentence: {
+        template: 'SELECT a FROM TABLE',
+        replacements: {
+          TABLE: 'AllexTestTable'
+        }
+      },
+      proc: [function (a) {
+        return a - 5;
+      }],
+      fields: ['MyA']
+    },
+    {MyA: 0}
   ]
 ];
 
@@ -317,6 +349,21 @@ function cmpjober (test) {
 }
 function cmpexpecter (test) {
   return test[2];
+}
+function arryIt (tests) {
+  return it ('Array:\n\t'+tests.map(cmptitler).join('\n\t'), function () {
+    this.timeout(1e7);
+    var queue = Executor.queue(tests.map(cmpjober));
+    var exp = tests.map(cmpexpecter);
+    var ret = queue.should.eventually.deep.equal(exp);
+    /**
+    var ret = queue.then(function (res) {
+      return expect(res).to.deep.equal(exp);
+    })
+    /**/
+    tests = null;
+    return ret;
+  });
 }
 function compositeIt (tests) {
   return it ('Composite:\n\t'+tests.map(cmptitler).join('\n\t'), function () {
@@ -344,6 +391,15 @@ function randomIndex (arry) {
 }
 function randomItem (arry) {
   return arry[randomIndex(arry)];
+}
+function randomArryIt (testsarry) {
+  var i;
+  var tests = [];
+  var len = 5+randomInt(5);
+  for (i=0; i<len; i++) {
+    tests.push(randomItem(randomItem(testsarry)));
+  }
+  arryIt(tests);
 }
 function randomCompositeIt (testsarry) {
   var i;
@@ -442,6 +498,14 @@ describe('Test SQL Queueing', function () {
   firstrecordTests.forEach(singularIt);
   /**/
   /**/
+  for (var i=0; i<10; i++) {
+    randomArryIt([
+      verbatimtests,
+      lookupTests,
+      recordsetTests,
+      firstrecordTests
+    ]);
+  }
   for (var i=0; i<10; i++) {
     randomCompositeIt([
       verbatimtests,
