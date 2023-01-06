@@ -1,5 +1,5 @@
 var delaytime = 1000;
-var verbatimtests = [
+var verbatimTests = [
   [
     'Verbatim with no fields, no proc',
     {
@@ -100,7 +100,8 @@ var lookupTests = [
       what: 'c',
       where: 'a=5',
       result: {
-        Mm: 'no'
+        Mm: 'no',
+        TheC: null
       },
       field: 'TheC',
       proc: [function (val) {return val-17;}]
@@ -255,7 +256,8 @@ var recordsetTests = [
         return rec.a-5;
       },
       result: {
-        Mm: 'nono'
+        Mm: 'nono',
+        myLookups: null
       },
       field: 'myLookups'
     },
@@ -267,6 +269,29 @@ var recordsetTests = [
     }    
   ]
 ];
+var recordset2arryofscalarsTests = [
+  [
+    'Recordset2ArryOfScalars, sentence, no fields, no scalarproc',
+    {
+      type: 'recordset2arryofscalars',
+      sentence: 'SELECT a FROM AllexTestTable',
+      scalarfield: 'a'
+    },
+    [5, 6, 7]
+  ],
+  [
+    'Recordset2ArryOfScalars, sentence, no fields, has scalarproc',
+    {
+      type: 'recordset2arryofscalars',
+      sentence: 'SELECT a FROM AllexTestTable',
+      scalarfield: 'a',
+      scalarproc: function (val) {
+        return val+2;
+      }
+    },
+    [7, 8, 9]
+  ]
+]
 var firstrecordTests = [
   [
     'First record, no fields, no proc',
@@ -491,26 +516,30 @@ describe('Test SQL Queueing', function () {
     )).go(), 'insert 1');
   });
 
+
   /**/
-  verbatimtests.forEach(singularIt);
+  verbatimTests.forEach(singularIt);
   lookupTests.forEach(singularIt);
   recordsetTests.forEach(singularIt);
+  recordset2arryofscalarsTests.forEach(singularIt);
   firstrecordTests.forEach(singularIt);
   /**/
   /**/
   for (var i=0; i<10; i++) {
     randomArryIt([
-      verbatimtests,
+      verbatimTests,
       lookupTests,
       recordsetTests,
+      recordset2arryofscalarsTests,
       firstrecordTests
     ]);
   }
   for (var i=0; i<10; i++) {
     randomCompositeIt([
-      verbatimtests,
+      verbatimTests,
       lookupTests,
       recordsetTests,
+      recordset2arryofscalarsTests,
       firstrecordTests
     ]);
   }

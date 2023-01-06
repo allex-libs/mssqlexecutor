@@ -5,6 +5,12 @@ function createTxnWrappedSpecialization (helpers, execlib, Base) {
     q = lib.q;
 
   function TxnedExecutor (txnjobcore) {
+    if (txnjobcore && txnjobcore.executor) {
+      TxnedExecutor.prototype.queue = txnjobcore.executor.constructor.prototype.queue;
+      TxnedExecutor.prototype.validateQueueObj = txnjobcore.executor.constructor.prototype.validateQueueObj;
+      TxnedExecutor.prototype.analyzeQueueResult = txnjobcore.executor.constructor.prototype.analyzeQueueResult;
+      TxnedExecutor.prototype.queueTypes = txnjobcore.executor.constructor.prototype.queueTypes;
+    }
     this.txn = txnjobcore.txn;
     this.resourceHandlingOptions = {connection: txnjobcore.txn._acquiredConfig};
     this.dbname = txnjobcore.executor.dbname;
@@ -28,6 +34,10 @@ function createTxnWrappedSpecialization (helpers, execlib, Base) {
   TxnedExecutor.prototype.activateConnection = function (connection) {
     return connection.request();
   };
+  TxnedExecutor.prototype.queue = null;
+  TxnedExecutor.prototype.validateQueueObj = null;
+  TxnedExecutor.prototype.analyzeQueueResult = null;
+  TxnedExecutor.prototype.queueTypes = null;
 
   function TxnWrappedJobCore (executor, jobproducerfunc) {
     Base.call(this, executor, jobproducerfunc);
