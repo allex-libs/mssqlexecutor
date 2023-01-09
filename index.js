@@ -9,7 +9,9 @@ function createMSSQLExecutor (execlib, sqlexecutorbaselib) {
   require('./helperjobs')(execlib, mylib);
 
   require('./executorcreator')(execlib, sqlexecutorbaselib.Executor, mylib);
-  sqlexecutorbaselib.createExecutorQueueing(mylib);
+  sqlexecutorbaselib.createExecutorQueueing(mylib, {
+    recordsetFormatProducer: function (res) {return res;}
+  });
 
   var squtr = mylib.jobs.SyncQuery.prototype.useTheRequest;
   mylib.jobs.SyncQuery.prototype.useTheRequest = function (request) {
