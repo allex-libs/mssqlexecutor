@@ -199,7 +199,7 @@ var recordsetTests = [
     'Recordset, sentence, no fields, no proc',
     {
       type: 'recordset',
-      sentence: 'SELECT a FROM AllexTestTable'
+      sentence: 'SELECT a FROM AllexTestTable WHERE a<8'
     },
     [
       {a: 5},{a: 6},{a: 7}
@@ -209,7 +209,7 @@ var recordsetTests = [
     'Recordset, sentence, no fields, has proc',
     {
       type: 'recordset',
-      sentence: 'SELECT a FROM AllexTestTable',
+      sentence: 'SELECT a FROM AllexTestTable WHERE a<8',
       proc: function (rec0, rec1, rec2) {
         return rec0.a+rec1.a+rec2.a;
       }
@@ -220,22 +220,9 @@ var recordsetTests = [
     'Recordset, sentence, no fields, has rsproc',
     {
       type: 'recordset',
-      sentence: 'SELECT a FROM AllexTestTable',
+      sentence: 'SELECT a FROM AllexTestTable where a<8',
       rsproc: function (rec) {
         return rec.map(function (r) {return r.a-5})
-      }
-    },
-    [
-      0, 1, 2
-    ]
-  ],
-  [
-    'Recordset, sentence, no fields, has recproc',
-    {
-      type: 'recordset',
-      sentence: 'SELECT a FROM AllexTestTable',
-      recproc: function (rec) {
-        return rec.a-5;
       }
     },
     [
@@ -247,7 +234,7 @@ var recordsetTests = [
     {
       type: 'recordset',
       sentence: {
-        template: 'SELECT a FROM TABLE',
+        template: 'SELECT a FROM TABLE WHERE a<8',
         replacements: {
           TABLE: 'AllexTestTable'
         }
@@ -274,7 +261,7 @@ var recordset2arryofscalarsTests = [
     'Recordset2ArryOfScalars, sentence, no fields, no scalarproc',
     {
       type: 'recordset2arryofscalars',
-      sentence: 'SELECT a FROM AllexTestTable',
+      sentence: 'SELECT a FROM AllexTestTable WHERE a<8',
       scalarfield: 'a'
     },
     [5, 6, 7]
@@ -283,7 +270,7 @@ var recordset2arryofscalarsTests = [
     'Recordset2ArryOfScalars, sentence, no fields, has scalarproc',
     {
       type: 'recordset2arryofscalars',
-      sentence: 'SELECT a FROM AllexTestTable',
+      sentence: 'SELECT a FROM AllexTestTable WHERE a<8',
       scalarfield: 'a',
       scalarproc: function (val) {
         return val+2;
@@ -357,6 +344,40 @@ var firstrecordTests = [
     {MyA: 0}
   ]
 ];
+var insertTestTemplate = [
+  null,
+  {
+    type: 'rowsaffected',
+    sentence: {
+      template: "INSERT INTO TABLE (a,b,c) VALUES (AVALUE, BVALUE, CVALUE)",
+      replacements: {
+        TABLE: 'AllexTestTable',
+        AVALUE: null,
+        BVALUE: null,
+        CVALUE: null
+      }
+    }
+  },
+  1
+];
+var _insertCount = 0;
+function insertTest () {
+  _insertCount++;
+  var val = 1000+_insertCount;
+  return [
+    'INSERT '+val,
+    lib.extend({}, insertTestTemplate[1], {
+      sentence: {
+        replacements: {
+          AVALUE: val,
+          BVALUE: "'bla"+val+"'",
+          CVALUE: -val
+        }
+      }
+    }),
+    insertTestTemplate[2]
+  ];
+}
 
 function singularIt (test) {
   return it (test[0], function () {
@@ -415,7 +436,8 @@ function randomIndex (arry) {
   return randomInt(arry.length);
 }
 function randomItem (arry) {
-  return arry[randomIndex(arry)];
+  var ret = arry[randomIndex(arry)];
+  return lib.isFunction(ret) ? ret() : ret;
 }
 function randomArryIt (testsarry) {
   var i;
@@ -448,51 +470,41 @@ describe('Test SQL Queueing', function () {
   });
   /*
   it ('Create Test Table', function () {
-    return qlib.promise2console((new Lib.jobs.SyncQuery(Executor, [
-    "IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE name='AllexTestTable' AND xtype='U')",
-    "CREATE TABLE AllexTestTable (",
-        "a int NOT NULL,",
-        "b varchar(10) NOT NULL,",
-        "c int NOT NULL",
-    ")"
-    ].join(' '))).go(), 'create');
-  });
-  */
-  it ('Create Test Table', function () {
-    return qlib.promise2console((new Lib.jobs.SyncQuery(
-      Executor, 
-      Lib.sqlsentencing.createTable({
+    return qlib.promise2console(Executor.queue({
+      type: 'justdoit', 
+      sentence: Lib.sqlsentencing.createTable({
         name: 'AllexTestTable', 
         fields: [
-        {
-          name: 'a',
-          type: 'int',
-          nullable: false,
-          constraint: 'PRIMARY KEY'
-        },
-        {
-          name: 'b',
-          type: 'varchar (10)',
-          nullable: true
-        },
-        {
-          name: 'c',
-          type: 'int',
-          nullable: false
-        }
-      ]
-    })
-    )).go(), 'create');
+          {
+            name: 'a',
+            type: 'int',
+            nullable: false,
+            constraint: 'PRIMARY KEY'
+          },
+          {
+            name: 'b',
+            type: 'varchar (10)',
+            nullable: true
+          },
+          {
+            name: 'c',
+            type: 'int',
+            nullable: false
+          }
+        ]
+      })
+    }), 'create');
   });
 
   it ('Truncate first', function () {
-    return qlib.promise2console((new Lib.jobs.SyncQuery(
-      Executor,
-      "TRUNCATE TABLE AllexTestTable"
-    )).go(), 'truncate');
+    return qlib.promise2console(Executor.queue({
+      type: 'justdoit',
+      sentence: "TRUNCATE TABLE AllexTestTable"
+    }), 'truncate');
   })
+  */
 
-  it ('Insert some values', function () {
+  it ('Create Test Table, Truncate it, Insert some values', function () {
     var insstring = 'INSERT INTO AllexTestTable (a,b,c) '+Lib.sqlsentencing.toValuesOfHashArray([
       {
         a: 5,
@@ -510,12 +522,45 @@ describe('Test SQL Queueing', function () {
         c: 0
       },
     ], ['a', 'b', 'c']);
-    return qlib.promise2console((new Lib.jobs.SyncQuery(
-      Executor,
-      insstring
-    )).go(), 'insert 1');
+    return qlib.promise2console(Executor.queue([{
+      type: 'justdoit', 
+      sentence: Lib.sqlsentencing.createTable({
+        name: 'AllexTestTable', 
+        fields: [
+          {
+            name: 'a',
+            type: 'int',
+            nullable: false,
+            constraint: 'PRIMARY KEY'
+          },
+          {
+            name: 'b',
+            type: 'varchar (10)',
+            nullable: true
+          },
+          {
+            name: 'c',
+            type: 'int',
+            nullable: false
+          }
+        ]
+      })
+    },{
+      type: 'justdoit',
+      sentence: "TRUNCATE TABLE AllexTestTable"
+    },{
+      type: 'rowsaffected',
+      sentence: insstring,
+    }]), 'create_truncate_insert#1');
   });
 
+  compositeIt([
+    insertTest(),
+    lookupTests[10],
+    insertTest(),
+    recordset2arryofscalarsTests[1],
+    insertTest()
+  ]);
 
   /**/
   verbatimTests.forEach(singularIt);
@@ -531,7 +576,8 @@ describe('Test SQL Queueing', function () {
       lookupTests,
       recordsetTests,
       recordset2arryofscalarsTests,
-      firstrecordTests
+      firstrecordTests,
+      [insertTest]
     ]);
   }
   for (var i=0; i<10; i++) {
@@ -540,7 +586,8 @@ describe('Test SQL Queueing', function () {
       lookupTests,
       recordsetTests,
       recordset2arryofscalarsTests,
-      firstrecordTests
+      firstrecordTests,
+      [insertTest]
     ]);
   }
   /**/
@@ -569,17 +616,19 @@ describe('Test SQL Queueing', function () {
         c1: 0
       },
     ], ['a1', 'b1', 'c1']);
-    return qlib.promise2console((new Lib.jobs.SyncQuery(
-      Executor,
-      insstring
-    )).go(), 'insert 2');
+    return qlib.promise2console(Executor.queue({
+      type: 'rowsaffected',
+      sentence: insstring
+    }), 'insert 2');
   });
 
+  singularIt(insertTest());
+
   it ('Find an inserted value', function () {
-    return (new Lib.jobs.SyncSingleQuery(
-      Executor,
-      'SELECT * FROM AllexTestTable WHERE a=15'
-    )).go().then(function (results) {
+    return Executor.queue({
+      type: 'recordset',
+      sentence: 'SELECT * FROM AllexTestTable WHERE a=15'
+    }).then(function (results) {
       if (results[0].b !== 'bla15') {
         throw new lib.Error('MISMATCH', 'Expected bla15 but got '+results[0].b);
       }
@@ -588,16 +637,16 @@ describe('Test SQL Queueing', function () {
   });
 
   it ('Join with valuesOfScalarArray', function () {
-    return (new Lib.jobs.SyncSingleQuery(
-      Executor,
-      [
+    return Executor.queue({
+      type: 'recordset',
+      sentence: [
       'SELECT t.b FROM',
       Lib.sqlsentencing.toValuesOfScalarArray([6], 'mycolumn'),
       'q',
       'LEFT JOIN AllexTestTable t',
       'ON q.mycolumn=t.a'
       ].join(' ')
-    )).go().then(function (results) {
+    }).then(function (results) {
       if (results[0].b !== 'bla6') {
         throw new lib.Error('MISMATCH', 'Expected bla6 but got '+results[0].b);
       }
@@ -607,19 +656,17 @@ describe('Test SQL Queueing', function () {
 
   it ('Upsert a record that exists', function () {
     this.timeout(1e7);
-    return (new Lib.jobs.Upsert(
-      Executor,
-      {
-        tablename: 'AllexTestTable',
-        record: {
-          a: 15,
-          b: 'bla15_upd',
-          c: 15
-        },
-        selectfields: ['a'],
-        setfields: ['b']
-      }
-    )).go().then(function (result) {
+    return Executor.queue({
+      type: 'upsert',
+      tablename: 'AllexTestTable',
+      record: {
+        a: 15,
+        b: 'bla15_upd',
+        c: 15
+      },
+      selectfields: ['a'],
+      setfields: ['b']
+    }).then(function (result) {
       if (!result.updated) {
         throw new lib.Error('NOT_UPDATED', 'Expected the record with a:15 to be updated');
       }
@@ -628,10 +675,10 @@ describe('Test SQL Queueing', function () {
   });
 
   it ('Find the upserted value', function () {
-    return (new Lib.jobs.SyncSingleQuery(
-      Executor,
-      'SELECT * FROM AllexTestTable WHERE a=15'
-    )).go().then(function (results) {
+    return Executor.queue({
+      type: 'recordset',
+      sentence: 'SELECT * FROM AllexTestTable WHERE a=15'
+    }).then(function (results) {
       if (results[0].c !== 0) {
         throw new lib.Error('MISMATCH', 'For c expected 0 but got '+results[0].b);
       }
@@ -644,19 +691,17 @@ describe('Test SQL Queueing', function () {
 
   it ('Upsert a record that does not exist', function () {
     this.timeout(1e7);
-    return (new Lib.jobs.Upsert(
-      Executor,
-      {
-        tablename: 'AllexTestTable',
-        record: {
-          a: 55,
-          b: 'bla55',
-          c: 0
-        },
-        selectfields: ['a'],
-        setfields: ['b', 'c']
-      }
-    )).go().then(function (result) {
+    return Executor.queue({
+      type: 'upsert',
+      tablename: 'AllexTestTable',
+      record: {
+        a: 55,
+        b: 'bla55',
+        c: 0
+      },
+      selectfields: ['a'],
+      setfields: ['b', 'c']
+    }).then(function (result) {
       if (!result.inserted) {
         throw new lib.Error('NOT_INSERTED', 'Expected the record with a:55 to be inserted');
       }
@@ -665,10 +710,10 @@ describe('Test SQL Queueing', function () {
   });
 
   it ('Find the last upserted value', function () {
-    return (new Lib.jobs.SyncSingleQuery(
-      Executor,
-      'SELECT * FROM AllexTestTable WHERE a=55'
-    )).go().then(function (results) {
+    return Executor.queue({
+      type: 'recordset',
+      sentence: 'SELECT * FROM AllexTestTable WHERE a=55'
+    }).then(function (results) {
       if (results[0].c !== 0) {
         throw new lib.Error('MISMATCH', 'For c expected 0 but got '+results[0].b);
       }
@@ -681,23 +726,21 @@ describe('Test SQL Queueing', function () {
 
   it ('Upsert many, all updates', function () {
     this.timeout(1e7);
-    return (new Lib.jobs.UpsertMany(
-      Executor,
-      {
-        tablename: 'AllexTestTable',
-        records: [{
-          a: 15,
-          b: 'bla15_2',
-          c: 14
-        },{
-          a: 16,
-          b: 'bla16_2',
-          c: 15
-        }],
-        selectfields: ['a'],
-        setfields: ['b', 'c']
-      }
-    )).go().then(function (result) {
+    return Executor.queue({
+      type: 'upsertmany',
+      tablename: 'AllexTestTable',
+      records: [{
+        a: 15,
+        b: 'bla15_2',
+        c: 14
+      },{
+        a: 16,
+        b: 'bla16_2',
+        c: 15
+      }],
+      selectfields: ['a'],
+      setfields: ['b', 'c']
+    }).then(function (result) {
       if (result.updated != 2) {
         throw new lib.Error('NOT_UPDATED', 'Expected UpsertMany to update 2 records, but only '+result.updated+' got updated');
       }
@@ -707,23 +750,21 @@ describe('Test SQL Queueing', function () {
 
   it ('Upsert many, one insert, one update', function () {
     this.timeout(1e7);
-    return (new Lib.jobs.UpsertMany(
-      Executor,
-      {
-        tablename: 'AllexTestTable',
-        records: [{
-          a: 15,
-          b: 'bla15_2',
-          c: 14
-        },{
-          a: 116,
-          b: 'bla116',
-          c: 115
-        }],
-        selectfields: ['a'],
-        setfields: ['b', 'c']
-      }
-    )).go().then(function (result) {
+    return Executor.queue({
+      type: 'upsertmany',
+      tablename: 'AllexTestTable',
+      records: [{
+        a: 15,
+        b: 'bla15_2',
+        c: 14
+      },{
+        a: 116,
+        b: 'bla116',
+        c: 115
+      }],
+      selectfields: ['a'],
+      setfields: ['b', 'c']
+    }).then(function (result) {
       if (!(result.updated == 1 && result.inserted == 1)) {
         throw new lib.Error('NOT_UPDATED', 'Expected UpsertMany to update 1 record and insert 1 record, but '+result.updated+' got updated and '+result.inserted+' got inserted');
       }
@@ -733,23 +774,21 @@ describe('Test SQL Queueing', function () {
 
   it ('Upsert many, all inserts', function () {
     this.timeout(1e7);
-    return (new Lib.jobs.UpsertMany(
-      Executor,
-      {
-        tablename: 'AllexTestTable',
-        records: [{
-          a: 215,
-          b: 'bla215',
-          c: 214
-        },{
-          a: 216,
-          b: 'bla216',
-          c: 215
-        }],
-        selectfields: ['a'],
-        setfields: ['b', 'c']
-      }
-    )).go().then(function (result) {
+    return Executor.queue({
+      type: 'upsertmany',
+      tablename: 'AllexTestTable',
+      records: [{
+        a: 215,
+        b: 'bla215',
+        c: 214
+      },{
+        a: 216,
+        b: 'bla216',
+        c: 215
+      }],
+      selectfields: ['a'],
+      setfields: ['b', 'c']
+    }).then(function (result) {
       if (result.inserted != 2) {
         throw new lib.Error('NOT_INSERTED', 'Expected UpsertMany to insert 2 records, but only '+result.inserted+' got inserted');
       }
@@ -758,10 +797,15 @@ describe('Test SQL Queueing', function () {
   });
 
   it ('Drop Test Table', function () {
-    return qlib.promise2console((new Lib.jobs.SyncQuery(Executor, [
-      "IF EXISTS (SELECT * FROM SYSOBJECTS WHERE name='AllexTestTable' AND xtype='U')",
-      "DROP TABLE AllexTestTable"
-      ].join(' '))).go(), 'drop');
+    this.timeout(1e7);
+    return qlib.promise2console(Executor.queue({
+      type: 'rowsaffected',
+      sentence: [
+        "IF EXISTS (SELECT * FROM SYSOBJECTS WHERE name='AllexTestTable' AND xtype='U')",
+        "DROP TABLE AllexTestTable"
+      ].join(' '),
+      rowsaffectedcount: 2
+    }), 'drop');
   });
 
   it ('Destroy Executor', function () {
