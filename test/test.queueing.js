@@ -1,4 +1,6 @@
 var delaytime = 1000;
+var beginTxn = 'BEGIN TRANSACTION';
+var commitTxn = 'COMMIT TRANSACTION';
 var verbatimTests = [
   [
     'Verbatim with no fields, no proc',
@@ -387,6 +389,18 @@ function singularIt (test) {
     return ret;
   })
 }
+function singularTxnedIt (test) {
+  return it (test[0]+' under Transaction', function () {
+    this.timeout(1e7);
+    var ret = Executor.queue([
+      beginTxn,
+      test[1],
+      commitTxn
+    ]).should.eventually.deep.equal([test[2]]);
+    test = null;
+    return ret;
+  })
+}
 function cmptitler (test) {
   return test[0];
 }
@@ -399,7 +413,17 @@ function cmpexpecter (test) {
 function arryIt (tests) {
   return it ('Array:\n\t'+tests.map(cmptitler).join('\n\t'), function () {
     this.timeout(1e7);
-    var queue = Executor.queue(tests.map(cmpjober));
+    var ts = tests.map(cmpjober);
+    var tslen = ts.length;
+    if (tslen>2) {
+      ts.splice(1, 0, beginTxn);
+      ts.splice(tslen-2, 0, commitTxn);
+    } else {
+      ts.unshift(beginTxn);
+      ts.push(commitTxn);
+  
+    }
+    var queue = Executor.queue(ts);
     var exp = tests.map(cmpexpecter);
     var ret = queue.should.eventually.deep.equal(exp);
     /**
@@ -554,6 +578,7 @@ describe('Test SQL Queueing', function () {
     }]), 'create_truncate_insert#1');
   });
 
+  /**/
   compositeIt([
     insertTest(),
     lookupTests[10],
@@ -561,6 +586,7 @@ describe('Test SQL Queueing', function () {
     recordset2arryofscalarsTests[1],
     insertTest()
   ]);
+  /**/
 
   /**/
   verbatimTests.forEach(singularIt);
@@ -568,6 +594,14 @@ describe('Test SQL Queueing', function () {
   recordsetTests.forEach(singularIt);
   recordset2arryofscalarsTests.forEach(singularIt);
   firstrecordTests.forEach(singularIt);
+  /**/
+
+  /**/
+  verbatimTests.forEach(singularTxnedIt);
+  lookupTests.forEach(singularTxnedIt);
+  recordsetTests.forEach(singularTxnedIt);
+  recordset2arryofscalarsTests.forEach(singularTxnedIt);
+  firstrecordTests.forEach(singularTxnedIt);
   /**/
   /**/
   for (var i=0; i<10; i++) {
@@ -580,6 +614,8 @@ describe('Test SQL Queueing', function () {
       [insertTest]
     ]);
   }
+  /**/
+  /**/
   for (var i=0; i<10; i++) {
     randomCompositeIt([
       verbatimTests,
@@ -598,6 +634,7 @@ describe('Test SQL Queueing', function () {
   ]);
   /**/
 
+  /**/
   it ('Insert some values again', function () {
     var insstring = 'INSERT INTO AllexTestTable (a,b,c) '+Lib.sqlsentencing.toValuesOfHashArray([
       {
@@ -656,21 +693,25 @@ describe('Test SQL Queueing', function () {
 
   it ('Upsert a record that exists', function () {
     this.timeout(1e7);
-    return Executor.queue({
-      type: 'upsert',
-      tablename: 'AllexTestTable',
-      record: {
-        a: 15,
-        b: 'bla15_upd',
-        c: 15
+    return Executor.queue([
+      'BEGIN TRANSACTION',
+      {
+        type: 'upsert',
+        tablename: 'AllexTestTable',
+        record: {
+          a: 15,
+          b: 'bla15_upd',
+          c: 15
+        },
+        selectfields: ['a'],
+        setfields: ['b']
       },
-      selectfields: ['a'],
-      setfields: ['b']
-    }).then(function (result) {
-      if (!result.updated) {
+      'COMMIT TRANSACTION'
+    ]).then(function (result) {
+      if (!result[0].updated) {
         throw new lib.Error('NOT_UPDATED', 'Expected the record with a:15 to be updated');
       }
-      console.log(result);
+      console.log(result[0]);
     });
   });
 
@@ -795,6 +836,7 @@ describe('Test SQL Queueing', function () {
       console.log(result);
     });
   });
+  /**/
 
   it ('Drop Test Table', function () {
     this.timeout(1e7);

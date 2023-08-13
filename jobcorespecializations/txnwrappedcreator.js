@@ -16,8 +16,10 @@ function createTxnWrappedSpecialization (helpers, execlib, Base) {
     this.dbname = txnjobcore.executor.dbname;
     this.connected = this.txn.connected;
     this.maybeLog = txnjobcore.executor.maybeLog.bind(txnjobcore.executor);
+    this.maybeLogComment = txnjobcore.executor.maybeLogComment.bind(txnjobcore.executor);
   }
   TxnedExecutor.prototype.destroy = function () {
+    this.maybeLogComment = null;
     this.maybeLog = null;
     this.connected = null;
     this.dbname = null;
@@ -41,8 +43,13 @@ function createTxnWrappedSpecialization (helpers, execlib, Base) {
 
   function TxnWrappedJobCore (executor, jobproducerfunc) {
     Base.call(this, executor, jobproducerfunc);
+    this.rolledBack = false;
   }
   lib.inherit(TxnWrappedJobCore, Base);
+  TxnWrappedJobCore.prototype.destroy = function () {
+    this.rolledBack = null;
+    Base.prototype.destroy.call(this);
+  };
 
   TxnWrappedJobCore.prototype.shouldContinue = function () {
     var ret = Base.prototype.shouldContinue.call(this);
@@ -71,6 +78,7 @@ function createTxnWrappedSpecialization (helpers, execlib, Base) {
   TxnWrappedJobCore.prototype.onConnected = function (pool) {
     this.pool = pool;
     this.txn = this.pool.transaction();
+    this.txn.on('rollback', this.onRolledBack.bind(this));
   };
   TxnWrappedJobCore.prototype.beginTransaction = function () {
     this.executor.maybeLog('BEGIN TRANSACTION');
@@ -80,16 +88,23 @@ function createTxnWrappedSpecialization (helpers, execlib, Base) {
     this.txnExecutor = new TxnedExecutor(this);
     return this.jobProducerFunc(this.txnExecutor);
   };
-  TxnWrappedJobCore.prototype.finalizeTxn = function () {
+  TxnWrappedJobCore.prototype.finalizeTxn = function (err) {
     this.txnUnderWay = false;
     if (!this.result.fail) {
       this.executor.maybeLog('COMMIT TRANSACTION');
       return this.txn.commit();
     }
-    if (!this.txn._aborted) {
+    this.executor.maybeLogComment(this.result.fail.message, 'Error in transaction:');
+    if (!(this.txn._aborted||this.rolledBack)) {
       this.executor.maybeLog('ROLLBACK TRANSACTION');
-      return this.txn.rollback();
+      try {
+        return this.txn.rollback();
+      } catch (e) {}
     }
+    throw this.result.fail;
+  };
+  TxnWrappedJobCore.prototype.onRolledBack = function () {
+    this.rolledBack = true;
   };
 
   return TxnWrappedJobCore;
