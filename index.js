@@ -1,6 +1,7 @@
 function createMSSQLExecutor (execlib, sqlexecutorbaselib) {
   'use strict';
   var mylib = {};
+  mylib.helpers = sqlexecutorbaselib.helpers;
   require('./helpers')(execlib, mylib);
   mylib.sqlsentencing = sqlexecutorbaselib.createSqlSentencing(require('./sqlsentencingspecializations')(execlib));
   mylib.jobs = sqlexecutorbaselib.createJobs(mylib.sqlsentencing, require('./jobspecializations')(execlib));

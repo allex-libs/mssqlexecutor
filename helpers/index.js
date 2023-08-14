@@ -25,6 +25,6 @@ function createMSSQLHelpers (execlib, outerlib) {
   mylib.isTransactionUsable = isTransactionUsable;
   mylib.checkSyncQueryResults = checkSyncQueryResults;
 
-  outerlib.helpers = mylib;
+  outerlib.helpers = lib.extend({}, outerlib.helpers, mylib);
 }
 module.exports = createMSSQLHelpers;
