@@ -1,6 +1,9 @@
 var delaytime = 1000;
 var beginTxn = 'BEGIN TRANSACTION';
 var commitTxn = 'COMMIT TRANSACTION';
+var testFunc1 = function (res) {
+  console.log('last result', require('util').inspect(res, {depth: 11, colors: true}));
+}
 var verbatimTests = [
   [
     'Verbatim with no fields, no proc',
@@ -400,6 +403,17 @@ function singularTxnedIt (test) {
     test = null;
     return ret;
   })
+}function singularFuncedIt (func, test) {
+  return it (test[0]+' with Function', function () {
+    this.timeout(1e7);
+    var ret = Executor.queue([
+      func,
+      test[1],
+      func
+    ]).should.eventually.deep.equal([test[2]]);
+    test = null;
+    return ret;
+  })
 }
 function cmptitler (test) {
   return test[0];
@@ -602,6 +616,11 @@ describe('Test SQL Queueing', function () {
   recordsetTests.forEach(singularTxnedIt);
   recordset2arryofscalarsTests.forEach(singularTxnedIt);
   firstrecordTests.forEach(singularTxnedIt);
+  verbatimTests.forEach(singularFuncedIt.bind(null, testFunc1));
+  lookupTests.forEach(singularFuncedIt.bind(null, testFunc1));
+  recordsetTests.forEach(singularFuncedIt.bind(null, testFunc1));
+  recordset2arryofscalarsTests.forEach(singularFuncedIt.bind(null, testFunc1));
+  firstrecordTests.forEach(singularFuncedIt.bind(null, testFunc1));
   /**/
   /**/
   for (var i=0; i<10; i++) {
