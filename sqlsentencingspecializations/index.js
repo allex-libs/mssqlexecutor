@@ -5,7 +5,12 @@ function createSqlSentencingSpecializations (execlib) {
 
   var _NULL = 'NULL';
   function entityNameOf(val){
+    var dotindex;
     if (!lib.isVal(val)) return _NULL;
+    dotindex = lib.isString(val) ? val.lastIndexOf('.') : -1;
+    if (dotindex>=0) {
+      return dotindex==val.length-1 ? val : val.substring(0, dotindex+1)+entityNameOf(val.substring(dotindex+1));
+    }
     if (val[0]=='"') return val;
     return '"'+val+'"';
   }
