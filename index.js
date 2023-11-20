@@ -13,7 +13,7 @@ function createMSSQLExecutor (execlib, sqlexecutorbaselib) {
   sqlexecutorbaselib.createExecutorQueueing(mylib, {
     recordsetFormatProducer: function (res) {return res;}
   });
-
+  require('./queueing')(execlib, mylib);
   var squtr = mylib.jobs.SyncQuery.prototype.useTheRequest;
   mylib.jobs.SyncQuery.prototype.useTheRequest = function (request) {
     if (this.options && this.options.rowsAreArrays) {
