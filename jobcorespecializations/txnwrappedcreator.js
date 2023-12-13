@@ -17,8 +17,10 @@ function createTxnWrappedSpecialization (helpers, execlib, Base) {
     this.connected = this.txn.connected;
     this.maybeLog = txnjobcore.executor.maybeLog.bind(txnjobcore.executor);
     this.maybeLogComment = txnjobcore.executor.maybeLogComment.bind(txnjobcore.executor);
+    this.prepareForLog = txnjobcore.executor.prepareForLog.bind(txnjobcore.executor);
   }
   TxnedExecutor.prototype.destroy = function () {
+    this.prepareForLog = null;
     this.maybeLogComment = null;
     this.maybeLog = null;
     this.connected = null;
