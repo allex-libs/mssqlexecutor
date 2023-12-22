@@ -8,6 +8,7 @@ function createSyncSingleQuerySpecialization (execlib, Base){
   }
   lib.inherit(SyncSingleQueryJob, Base);
   SyncSingleQueryJob.prototype.onResult = function (res) {
+    this.destroyable.maybeLogComment(this.destroyable.prepareForLog('Done in '+(lib.now()-this.startTime)/1000+' sec'));
     this.resolve(res.recordset);
   };
 
