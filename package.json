@@ -1,6 +1,6 @@
 {
   "name": "allex_mssqlexecutorlib",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "AllexJS lib for executing queries against the MS SQL Server",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "url": "git+ssh://git@github.com/allex-libs/mssqlexecutor.git"
   },
   "dependencies": {
-    "mssql": "10.x"
+    "mssql": "11.x"
   },
   "keywords": [
     "ecosystem:AllexJS",
